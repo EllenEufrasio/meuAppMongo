@@ -1,38 +1,56 @@
 import { useState, useEffect } from 'react';
-import { View, TextInput, Button, FlatList, Text } from 'react-native';
+import { View, TextInput, Button, FlatList, Text, StyleSheet } from 'react-native';
 
 export default function App() {
   const [tarefas, setTarefas] = useState([]);
   const [texto, setTexto] = useState('');
 
-  const API = 'https://SEU-APP.onrender.com/tarefas';
+  const API = 'https://solid-system-4jqvvwggvj64hjgg6-3000.app.github.dev/tarefas';
 
+  // LISTAR
   async function carregar() {
-    const res = await fetch(API);
-    const data = await res.json();
-    setTarefas(data);
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      setTarefas(data);
+    } catch (error) {
+      console.log('Erro ao carregar:', error);
+    }
   }
 
+  // ADICIONAR
   async function adicionar() {
     if (!texto) return;
 
-    await fetch(API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ titulo: texto })
-    });
+    try {
+      await fetch(API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          titulo: texto
+        })
+      });
 
-    setTexto('');
-    carregar();
+      setTexto('');
+      carregar();
+    } catch (error) {
+      console.log('Erro ao adicionar:', error);
+    }
   }
 
+  // DELETAR
   async function deletar(id) {
-    await fetch(`${API}/${id}`, {
-      method: 'DELETE'
-    });
-    carregar();
+    try {
+      await fetch(`${API}/${id}`, {
+        method: 'DELETE'
+      });
+
+      carregar();
+    } catch (error) {
+      console.log('Erro ao deletar:', error);
+    }
   }
 
   useEffect(() => {
@@ -40,16 +58,12 @@ export default function App() {
   }, []);
 
   return (
-    <View style={{ marginTop: 50, padding: 20 }}>
+    <View style={styles.container}>
       <TextInput
         value={texto}
         onChangeText={setTexto}
         placeholder="Digite tarefa"
-        style={{
-          borderWidth: 1,
-          padding: 10,
-          marginBottom: 10
-        }}
+        style={styles.input}
       />
 
       <Button title="Adicionar" onPress={adicionar} />
@@ -58,15 +72,8 @@ export default function App() {
         data={tarefas}
         keyExtractor={item => item._id}
         renderItem={({ item }) => (
-          <View
-            style={{
-              padding: 10,
-              margin: 5,
-              backgroundColor: '#ddd'
-            }}
-          >
+          <View style={styles.item}>
             <Text>{item.titulo}</Text>
-
             <Button
               title="Deletar"
               onPress={() => deletar(item._id)}
@@ -77,3 +84,20 @@ export default function App() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 50,
+    padding: 20
+  },
+  input: {
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 10
+  },
+  item: {
+    padding: 10,
+    margin: 5,
+    backgroundColor: '#ddd'
+  }
+});
